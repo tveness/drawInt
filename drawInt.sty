@@ -1,0 +1,233 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{drawInt}
+
+\RequirePackage{tikz}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+
+\newif\ifhalf
+
+\newif\ifholepresent
+
+\newif\ifholes
+\newif\ifparts
+\newif\ifranges
+
+\holesfalse
+\partsfalse
+\rangesfalse
+
+
+\newcommand{\integers}{\halffalse}	%Set parity to integers
+\newcommand{\halfintegers}{\halftrue}	%Set parity to half-integers
+
+
+\xdef\fillRanges{}
+
+
+\newcommand{\minIv}{1}
+\newcommand{\maxIv}{1}
+
+\newcommand{\intrange}[2]{\renewcommand{\minIv}{#1} \renewcommand{\maxIv}{#2} }
+
+
+
+\newcommand{\minI}[1]{\renewcommand{\minIv}{#1} } 		%Left edge of fillable states
+\newcommand{\maxI}[1]{\renewcommand{\maxIv}{#1} }		%Right edge of fillable states
+
+\newcommand{\minfill}{-1}
+\newcommand{\maxfill}{1}
+\newcommand{\lab}{ }
+\newcommand{\intLabel}[1]{ \renewcommand{\lab}{#1} }
+
+\newcommand{\partv}{0}
+\newcommand{\particle}[1]{\particletrue\renewcommand{\partv}{#1}}
+\newcommand{\partlabel}{I^p}
+\newcommand{\partlab}[1]{\renewcommand{\partlabel}{#1}}
+
+
+\newcommand{\holelabel}{I^h}
+\newcommand{\holelab}[1]{\renewcommand{\holelabel}{#1}}
+
+\def\holelist{}
+\def\particlelist{}
+
+%\newcommand{\fillI}[2]{\filledtrue\renewcommand{\minfill}{#1} \renewcommand{\maxfill}{#2}}
+
+\newcommand{\fillI}[2]{
+\ifranges
+	\xdef\fillRanges{\fillRanges,#1/#2}
+\else
+	\xdef\fillRanges{#1/#2}
+	\rangestrue
+\fi
+}
+
+
+\newcommand{\particleadd}[2]{
+\ifparts
+	\xdef\particlelist{\particlelist,#1/$#2$}
+\else
+	\xdef\particlelist{#1/$#2$}
+	\partstrue
+\fi
+}
+
+\newcommand{\holeadd}[2]{
+\ifholes
+	\xdef\holelist{\holelist,#1/$#2$}
+\else
+	\xdef\holelist{#1/$#2$}
+	\holestrue
+\fi
+}
+
+
+\newcommand{\getInt}[1]{\pgfmathparse{int(#1)}\pgfmathresult}
+\newcommand{\gethInt}[1]{\pgfmathparse{int(#1)+0.5}\pgfmathresult}
+
+
+
+
+\newcommand{\render}{
+
+\begin{tikzpicture}[scale=1]
+
+
+	%Draw axis and put correct label on
+	\draw [->] (\minIv/2.0 - 1,0) -- (\maxIv/2.0 + 1,0) node [anchor=west]{$\lab\in \mathbb{Z}
+	\ifhalf	
+	+\frac{1}{2}
+	\fi
+	$};
+
+
+	%Draw integers appropriately
+
+	\foreach \x in {\minIv,...,\maxIv} {
+
+		\xdef\holepres{0}
+
+
+			\foreach \p/\q in \holelist {
+			\ifnum\x=\p
+				\xdef\holepres{1}
+			%
+			\fi
+			}
+
+		\ifnum\holepres=0
+			\ifhalf
+				\ifnum\x>0
+					\filldraw[fill=white,draw=black] (0.5*\x+0.25,0) circle (0.1);
+				\else
+					\filldraw[fill=white,draw=black] (0.5*\x+0.25,0) circle (0.1);
+
+				\fi
+			\else
+				\filldraw[fill=white,draw=black] (0.5*\x,0) circle (0.1);
+			\fi
+
+		\fi
+
+		\ifhalf
+			\ifnum\x>0
+			\node at (0.5*\x+.25,-.4) {\tiny $\frac{\pgfmathparse{int(2*\x-1)}\pgfmathresult}{2}$};
+			\else
+			\node at (0.5*\x+.25-.1,-.4) {\tiny $-\frac{\pgfmathparse{int(abs(2*\x-1))}\pgfmathresult}{2}$};
+			\fi
+
+		\else
+			\node at (0.5*\x,-.4) {\tiny $\pgfmathparse{int(\x)}\pgfmathresult$};
+
+
+		\fi
+
+	}
+
+	\foreach \minran/\maxran in \fillRanges {
+
+		\foreach \x in {\minran,...,\maxran} {
+
+
+
+			\xdef\holepres{0}
+
+
+				\foreach \p/\q in \holelist {
+				\ifnum\x=\p
+					\xdef\holepres{1}
+				%
+				\fi
+			}
+			\ifnum\holepres=0
+
+
+			\ifhalf
+
+			%Get half-integer
+				\ifnum\x>0
+					\filldraw[fill=black,draw=black] (0.5*\x+0.25,0) circle (0.1);
+				\else
+					\filldraw[fill=black,draw=black] (0.5*\x+0.25,0) circle (0.1);
+				\fi
+
+
+			\else
+
+
+			%Get integer
+		
+
+
+
+
+				\filldraw[fill=black,draw=black] (0.5*\x,0) circle (0.1);
+
+
+			\fi
+			\fi
+
+		}
+	}
+
+
+	\ifholes
+
+		\foreach \hv/\hl  in \holelist {
+			\ifhalf
+				\filldraw[fill=white,draw=black] (0.5*\hv+0.25,0) circle (0.1);
+				\node at (0.5*\hv+0.25,.4) {\hl};
+			\else
+				\filldraw[fill=white,draw=black] (0.5*\hv,0) circle (0.1);
+				\node at (0.5*\hv,.4) {\hl};
+			\fi
+		}
+	\fi
+
+	\foreach \pv/\pl  in \particlelist {
+		\ifhalf
+			\filldraw[fill=black,draw=black] (0.5*\pv+0.25,0) circle (0.1);
+			\node at (0.5*\pv+0.25,.4) {\pl};
+		\else
+			\filldraw[fill=black,draw=black] (0.5*\pv,0) circle (0.1);
+			\node at (0.5*\pv,.4) {\pl};
+		\fi
+	}
+
+
+
+
+\end{tikzpicture}
+
+\xdef\holelist{}
+\xdef\particlelist{}
+\partsfalse
+\holesfalse
+
+}
+
+
+
+
+\endinput
